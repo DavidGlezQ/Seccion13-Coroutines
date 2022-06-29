@@ -16,6 +16,7 @@ import com.david_glez.seccion9_proyecto_stores.databinding.ActivityMainBinding
 import com.david_glez.seccion9_proyecto_stores.editModule.viewModel.EditStoreViewModel
 import com.david_glez.seccion9_proyecto_stores.mainModule.adapters.OnClickListener
 import com.david_glez.seccion9_proyecto_stores.mainModule.adapters.StoreAdapter
+import com.david_glez.seccion9_proyecto_stores.mainModule.adapters.StoreListAdapter
 import com.david_glez.seccion9_proyecto_stores.mainModule.viewModel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -23,7 +24,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     //Clase 132
     private lateinit var mBinding: ActivityMainBinding
-    private lateinit var mAdapter: StoreAdapter
+    private lateinit var mAdapter: StoreListAdapter
     private lateinit var mGridLayout: GridLayoutManager
 
     // MVVM
@@ -46,20 +47,17 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     private fun setUpViewModel() {
         mMainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         mMainViewModel.getStores().observe(this) { stores->
-            mAdapter.setStores(stores)
+            mBinding.progressBar.visibility = View.GONE
+            mAdapter.submitList(stores)
         }
 
-        mMainViewModel.isShowProgress().observe(this, { isShowProgress ->
+        mMainViewModel.isShowProgress().observe(this) { isShowProgress ->
             mBinding.progressBar.visibility = if (isShowProgress) View.VISIBLE else View.GONE
-        })
+        }
 
         mEditStoreViewModel = ViewModelProvider(this).get(EditStoreViewModel::class.java)
         mEditStoreViewModel.getShowFab().observe(this){ isVisible ->
             if (isVisible) mBinding.fabAddStore.show() else mBinding.fabAddStore.hide()
-        }
-
-        mEditStoreViewModel.getStoreSelected().observe(this){ storeEntity ->
-            mAdapter.add(storeEntity)
         }
     }
 
@@ -77,7 +75,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
     }
 
     private fun setupRecyclerView() {
-        mAdapter = StoreAdapter(mutableListOf(), this)
+        mAdapter = StoreListAdapter( this)
         mGridLayout = GridLayoutManager(this, resources.getInteger(R.integer.main_columns))
 
         mBinding.recyclerView.apply {

@@ -39,8 +39,7 @@ class EditStoreFragment : Fragment() {
         mEditStoreViewModel = ViewModelProvider(requireActivity()).get(EditStoreViewModel::class.java)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
         mBinding = FragmentEditStoreBinding.inflate(layoutInflater, container, false)
@@ -58,8 +57,8 @@ class EditStoreFragment : Fragment() {
 
     private fun setUpViewModel() {
         mEditStoreViewModel.getStoreSelected().observe(viewLifecycleOwner){
-            mStoreEntity = it
-            if (it.id!= 0L){
+            mStoreEntity = it ?: StoreEntity()
+            if (it != null){
                 mIsEditMode = true
                 setUiStore(it)
             } else {
@@ -200,8 +199,8 @@ class EditStoreFragment : Fragment() {
     }
 
     private fun hideKeyBoard(){ //Ocultar el teclado cuando damos hacia atras
-        val imn = mActivity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imn.hideSoftInputFromWindow(requireView().windowToken, 0)
+        val imn = mActivity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imn?.hideSoftInputFromWindow(requireView().windowToken, 0)
     }
 
     override fun onDestroyView() {

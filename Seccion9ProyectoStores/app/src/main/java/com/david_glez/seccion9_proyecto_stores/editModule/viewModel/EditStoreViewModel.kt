@@ -8,6 +8,7 @@ import com.david_glez.seccion9_proyecto_stores.editModule.model.EditStoreInterac
 
 class EditStoreViewModel: ViewModel() {
 
+    private var storeId: Long = 0
     private val storeSelected = MutableLiveData<StoreEntity>()
     private val showFav = MutableLiveData<Boolean>()
     private val result = MutableLiveData<Any>()
@@ -19,11 +20,12 @@ class EditStoreViewModel: ViewModel() {
     }
 
     fun setStoreSelected(storeEntity: StoreEntity){
-        storeSelected.value = storeEntity
+        storeId = storeEntity.id
+        //storeSelected.value = storeEntity
     }
 
     fun getStoreSelected(): LiveData<StoreEntity>{
-        return storeSelected
+        return interactor.getStoreById(storeId)
     }
 
     fun setShowFab(isVisible: Boolean){
