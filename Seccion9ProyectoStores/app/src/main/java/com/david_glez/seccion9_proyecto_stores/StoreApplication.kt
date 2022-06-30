@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.room.Room
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.david_glez.seccion9_proyecto_stores.common.database.StoreAPI
 import com.david_glez.seccion9_proyecto_stores.common.database.StoreDataBase
 
 class StoreApplication : Application() {
@@ -12,7 +11,6 @@ class StoreApplication : Application() {
     //Singleton
     companion object{
         lateinit var dataBase: StoreDataBase
-        lateinit var storeAPI: StoreAPI
     }
 
     override fun onCreate() {
@@ -25,12 +23,15 @@ class StoreApplication : Application() {
 
         }
 
+        val MIGRATION_2_3 = object: Migration(2, 3){
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("CREATE UNIQUE INDEX index_StoreEntity_name ON StoreEntity (name)")
+            }
+        }
+
         dataBase = Room.databaseBuilder(this,
             StoreDataBase::class.java, "StoreDataBase")
-            .addMigrations(MIGRATION_1_2)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
             .build()
-
-        //Volley
-        storeAPI = StoreAPI.getInstance(this)
     }
 }

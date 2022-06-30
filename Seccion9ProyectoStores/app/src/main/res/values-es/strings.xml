@@ -30,4 +30,10 @@
 
     <string name="dialog_option_dial">Llamar</string>
     <string name="dialog_option_website">Ir al sitio web</string>
+
+    <string name="main_error_get">Error al consultar datos</string>
+    <string name="main_error_insert">Error al insertar datos</string>
+    <string name="main_error_update">Error al actualizar datos</string>
+    <string name="error_main_delete">Error al eliminar datos</string>
+    <string name="main_error">Error desconocido.</string>
 </resources>

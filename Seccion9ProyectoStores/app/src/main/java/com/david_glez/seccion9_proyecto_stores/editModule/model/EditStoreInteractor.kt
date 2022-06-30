@@ -1,10 +1,12 @@
 package com.david_glez.seccion9_proyecto_stores.editModule.model
 
+import android.database.sqlite.SQLiteConstraintException
 import androidx.lifecycle.LiveData
 import com.david_glez.seccion9_proyecto_stores.StoreApplication
 import com.david_glez.seccion9_proyecto_stores.common.entities.StoreEntity
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import com.david_glez.seccion9_proyecto_stores.common.utils.StoresException
+import com.david_glez.seccion9_proyecto_stores.common.utils.TypeError
+import kotlinx.coroutines.Dispatchers
 
 class EditStoreInteractor {
 
@@ -12,21 +14,21 @@ class EditStoreInteractor {
         return StoreApplication.dataBase.storeDao().getStoreById(id)
     }
 
-    fun saveStore(storeEntity: StoreEntity, callback: (Long) -> Unit){
-        doAsync{
-            val newId = StoreApplication.dataBase.storeDao().addStore(storeEntity!!)
-            uiThread {
-                callback(newId)
-            }
+    suspend fun saveStore(storeEntity: StoreEntity) = with(Dispatchers.IO){
+        try {
+            StoreApplication.dataBase.storeDao().addStore(storeEntity)
+        } catch (e: SQLiteConstraintException){
+            e.printStackTrace()
+            throw StoresException(TypeError.INSERT)
         }
     }
 
-    fun updateStore(storeEntity: StoreEntity, callback: (StoreEntity) -> Unit){ // retorna entity
-        /*doAsync{
-            StoreApplication.dataBase.storeDao().updateStore(storeEntity!!)
-            uiThread {
-                callback(storeEntity)
-            }
-        }*/
+    suspend fun updateStore(storeEntity: StoreEntity) = with(Dispatchers.IO){
+        try {
+            val result = StoreApplication.dataBase.storeDao().updateStore(storeEntity)
+            if (result == 0) throw StoresException(TypeError.UPDATE)
+        }catch (e: SQLiteConstraintException){
+            throw StoresException(TypeError.UPDATE)
+        }
     }
 }

@@ -12,13 +12,14 @@ import androidx.recyclerview.widget.GridLayoutManager
 import com.david_glez.seccion9_proyecto_stores.common.entities.StoreEntity
 import com.david_glez.seccion9_proyecto_stores.editModule.EditStoreFragment
 import com.david_glez.seccion9_proyecto_stores.R
+import com.david_glez.seccion9_proyecto_stores.common.utils.TypeError
 import com.david_glez.seccion9_proyecto_stores.databinding.ActivityMainBinding
 import com.david_glez.seccion9_proyecto_stores.editModule.viewModel.EditStoreViewModel
 import com.david_glez.seccion9_proyecto_stores.mainModule.adapters.OnClickListener
-import com.david_glez.seccion9_proyecto_stores.mainModule.adapters.StoreAdapter
 import com.david_glez.seccion9_proyecto_stores.mainModule.adapters.StoreListAdapter
 import com.david_glez.seccion9_proyecto_stores.mainModule.viewModel.MainViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity(), OnClickListener {
 
@@ -45,7 +46,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
     // inicializar el viewModel y observar los cambios para la interface
     private fun setUpViewModel() {
-        mMainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        mMainViewModel = ViewModelProvider(this)[MainViewModel::class.java]
         mMainViewModel.getStores().observe(this) { stores->
             mBinding.progressBar.visibility = View.GONE
             mAdapter.submitList(stores)
@@ -55,7 +56,18 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             mBinding.progressBar.visibility = if (isShowProgress) View.VISIBLE else View.GONE
         }
 
-        mEditStoreViewModel = ViewModelProvider(this).get(EditStoreViewModel::class.java)
+        mMainViewModel.getTypeError().observe(this) { typeError ->
+            val msgRes = when(typeError){
+                TypeError.GET -> getString(R.string.main_error_get)
+                TypeError.INSERT -> getString(R.string.main_error_insert)
+                TypeError.UPDATE-> getString(R.string.main_error_update)
+                TypeError.DELETE -> getString(R.string.error_main_delete)
+                else -> getString(R.string.main_error)
+            }
+            Snackbar.make(mBinding.root, msgRes, Snackbar.LENGTH_SHORT).show()
+        }
+
+        mEditStoreViewModel = ViewModelProvider(this)[EditStoreViewModel::class.java]
         mEditStoreViewModel.getShowFab().observe(this){ isVisible ->
             if (isVisible) mBinding.fabAddStore.show() else mBinding.fabAddStore.hide()
         }
@@ -83,6 +95,11 @@ class MainActivity : AppCompatActivity(), OnClickListener {
             layoutManager = mGridLayout
             adapter = mAdapter
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        mEditStoreViewModel.setShowFab(true)
     }
 
     /*

@@ -30,5 +30,10 @@
     <string name="main_error_no_result">We can\'t find compatible app with this action</string>
 
     <string name="arg_id" translatable="false">arg_id</string>
+    <string name="main_error_get">Error al consultar datos</string>
+    <string name="main_error_insert">Error al insertar datos</string>
+    <string name="main_error_update">Error al actualizar datos</string>
+    <string name="error_main_delete">Error al eliminar datos</string>
+    <string name="main_error">Error desconocido.</string>
 
 </resources>

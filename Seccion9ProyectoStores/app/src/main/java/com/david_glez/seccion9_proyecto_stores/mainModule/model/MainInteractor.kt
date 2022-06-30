@@ -5,54 +5,13 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import com.david_glez.seccion9_proyecto_stores.StoreApplication
 import com.david_glez.seccion9_proyecto_stores.common.entities.StoreEntity
+import com.david_glez.seccion9_proyecto_stores.common.utils.StoresException
+import com.david_glez.seccion9_proyecto_stores.common.utils.TypeError
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.withContext
 
 class MainInteractor { //Model
-
-    /* esta clase tiene como objetivo abstraer la consulta de datos para despues devolverlos a quien
-    * lo solicite, Model */
-
-    /*fun getStores(callback: (MutableList<StoreEntity>) -> Unit){
-        val URL = Constants.STORES_URL + Constants.GET_ALL_PATH
-        var storeList = mutableListOf<StoreEntity>()
-        val jsonObjectRequest = JsonObjectRequest(Request.Method.GET, URL, null, { response ->
-
-            //val status = response.getInt(Constants.STATUS_PROPERTY)
-            val status = response.optInt(Constants.STATUS_PROPERTY, Constants.ERROR)
-
-            if (status == Constants.SUCCESS){
-
-                val jsonList = response.optJSONArray(Constants.STORES_PROPERTY)?.toString()
-                if (jsonList != null){
-                    val mutableListType = object: TypeToken<MutableList<StoreEntity>>(){}.type
-                    storeList = Gson().fromJson<MutableList<StoreEntity>>(jsonList, mutableListType)
-                    callback(storeList)
-                    return@JsonObjectRequest
-                }
-            }
-            callback(storeList)
-        },{
-            it.printStackTrace()
-            callback(storeList)
-        })
-
-        StoreApplication.storeAPI.addToRequestQueue(jsonObjectRequest)
-    }*/
-
-    // funcion orden superior
-    /*fun getStoresRoom(callback: (MutableList<StoreEntity>) -> Unit){
-        doAsync {
-            val storesList = StoreApplication.dataBase.storeDao().getAllStores()
-            uiThread {
-                val json = Gson().toJson(storesList)
-                Log.i("Gson", json)
-                callback(storesList)
-            }
-        }
-    }*/
-
     //Coroutines
     val stores: LiveData<MutableList<StoreEntity>> = liveData {
         val storesLiveData = StoreApplication.dataBase.storeDao().getAllStores()
@@ -61,13 +20,13 @@ class MainInteractor { //Model
         })
     }
 
-    suspend fun deleteStore(storeEntity: StoreEntity){
-        delay(1_500)
-        StoreApplication.dataBase.storeDao().deleteStore(storeEntity)
+    suspend fun deleteStore(storeEntity: StoreEntity) = withContext(Dispatchers.IO){
+        val result = StoreApplication.dataBase.storeDao().deleteStore(storeEntity)
+        if (result == 0) throw StoresException(TypeError.DELETE)
     }
 
-    suspend fun updateStore(storeEntity: StoreEntity){
-        delay(300)
-        StoreApplication.dataBase.storeDao().updateStore(storeEntity)
+    suspend fun updateStore(storeEntity: StoreEntity) = withContext(Dispatchers.IO){
+        val result = StoreApplication.dataBase.storeDao().updateStore(storeEntity)
+        if (result == 0) throw StoresException(TypeError.UPDATE)
     }
 }

@@ -5,23 +5,19 @@ import android.os.Bundle
 import android.text.Editable
 import android.view.*
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.david_glez.seccion9_proyecto_stores.common.entities.StoreEntity
-import com.david_glez.seccion9_proyecto_stores.mainModule.MainActivity
 import com.david_glez.seccion9_proyecto_stores.R
-import com.david_glez.seccion9_proyecto_stores.StoreApplication
+import com.david_glez.seccion9_proyecto_stores.common.entities.StoreEntity
+import com.david_glez.seccion9_proyecto_stores.common.utils.TypeError
 import com.david_glez.seccion9_proyecto_stores.databinding.FragmentEditStoreBinding
 import com.david_glez.seccion9_proyecto_stores.editModule.viewModel.EditStoreViewModel
-import com.david_glez.seccion9_proyecto_stores.mainModule.viewModel.MainViewModel
+import com.david_glez.seccion9_proyecto_stores.mainModule.MainActivity
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
 
 class EditStoreFragment : Fragment() {
 
@@ -40,7 +36,7 @@ class EditStoreFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?): View? {
+        savedInstanceState: Bundle?): View {
         // Inflate the layout for this fragment
         mBinding = FragmentEditStoreBinding.inflate(layoutInflater, container, false)
 
@@ -72,22 +68,28 @@ class EditStoreFragment : Fragment() {
             hideKeyBoard()
 
             when(result){
-                is Long -> {
-                    mStoreEntity.id = result
-
+                is StoreEntity -> {
+                    val msgRes = if (result.id == 0L) R.string.edit_store_message_save_success
+                    else R.string.edit_store_message_update_success
                     mEditStoreViewModel.setStoreSelected(mStoreEntity)
 
-                    Toast.makeText(context, R.string.edit_store_message_save_success,
-                        Toast.LENGTH_SHORT).show()
+                    Snackbar.make(mBinding.root, msgRes, Snackbar.LENGTH_SHORT).show()
+
                     mActivity?.onBackPressed()
                 }
-                is StoreEntity -> {
-                    mEditStoreViewModel.setStoreSelected(mStoreEntity)
+            }
+        }
 
-                    Snackbar.make(mBinding.root,
-                        getString(R.string.edit_store_message_update_success),
-                        Snackbar.LENGTH_SHORT).show()
+        mEditStoreViewModel.getTypeError().observe(viewLifecycleOwner) { typeError ->
+            if (typeError != TypeError.NONE) {
+                val msgRes = when (typeError) {
+                    TypeError.GET -> getString(R.string.main_error_get)
+                    TypeError.INSERT -> getString(R.string.main_error_insert)
+                    TypeError.UPDATE -> getString(R.string.main_error_update)
+                    TypeError.DELETE -> getString(R.string.error_main_delete)
+                    else -> getString(R.string.main_error)
                 }
+                Snackbar.make(mBinding.root, msgRes, Snackbar.LENGTH_SHORT).show()
             }
         }
     }
@@ -175,29 +177,6 @@ class EditStoreFragment : Fragment() {
         return isValid
     }
 
-    private fun validateFields(): Boolean {
-        var isValid = true
-        if (mBinding.etPhotoUrl.text.toString().trim().isEmpty()){
-            mBinding.tilPhotoUrl.error = getString(R.string.helper_required)
-            mBinding.etPhotoUrl.requestFocus()
-            isValid = false
-        }
-
-        if (mBinding.etPhone.text.toString().trim().isEmpty()){
-            mBinding.tilPhone.error = getString(R.string.helper_required)
-            mBinding.etPhone.requestFocus()
-            isValid = false
-        }
-
-        if (mBinding.etName.text.toString().trim().isEmpty()){
-            mBinding.tilName.error = getString(R.string.helper_required)
-            mBinding.etName.requestFocus()
-            isValid = false
-        }
-
-        return isValid
-    }
-
     private fun hideKeyBoard(){ //Ocultar el teclado cuando damos hacia atras
         val imn = mActivity?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
         imn?.hideSoftInputFromWindow(requireView().windowToken, 0)
@@ -211,8 +190,9 @@ class EditStoreFragment : Fragment() {
     override fun onDestroy() {
         mActivity?.supportActionBar?.setDisplayHomeAsUpEnabled(false)
         mActivity?.supportActionBar?.title = getString(R.string.app_name)
-        mEditStoreViewModel.setShowFab(true)
         mEditStoreViewModel.setResult(Any())
+
+        mEditStoreViewModel.setTypeError(TypeError.NONE)
 
         setHasOptionsMenu(false)
         super.onDestroy()
